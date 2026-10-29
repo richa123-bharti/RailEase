@@ -1,3 +1,88 @@
 {% extends "base.html" %}
 {% block title %}My Dashboard — RailEase{% endblock %}
-{% block content %}<section class="dashboard-head"><div><span class="eyebrow">MY ACCOUNT</span><h1>Welcome, {{ user.username }}</h1></div><div class="wallet"><small>Wallet balance</small><div><strong>₹{{ wallet.balance }}</strong></div></div></section><h2>My bookings</h2>{% for booking in bookings %}<article class="booking-row"><div><strong>{{ booking.pnr }}</strong><h3>{{ booking.train.train_name }}</h3><p>{{ booking.train.source }} → {{ booking.train.destination }} · Seat {{ booking.seat_no }}</p><span>{{ booking.status }}</span></div><div><a class="button" href="{% url 'ticket' booking.pnr %}">View ticket</a>{% if booking.status != "Cancelled" %}<form method="post" action="{% url 'cancel_booking' booking.pnr %}">{% csrf_token %}<button type="submit" onclick="return confirm('Cancel this booking and get a refund?')">Cancel & refund</button></form>{% endif %}</div></article>{% empty %}<div class="empty-state"><h2>No bookings yet</h2><a class="button" href="{% url 'train_list' %}">Search trains</a></div>{% endfor %}{% endblock %}
+{% block content %}
+{% csrf_token %}
+<section class="dashboard-head">
+  <div><span class="eyebrow">MY ACCOUNT</span><h1>Welcome, {{ user.username }}</h1></div>
+  <div class="wallet"><small>Wallet balance</small><div><strong id="wallet-balance">₹{{ wallet.balance }}</strong></div></div>
+</section>
+
+<section class="wallet-topup">
+  <div>
+    <span class="eyebrow">RAZORPAY WALLET</span>
+    <h2>Add money</h2>
+    <p>{% if payment_configured %}Secure payment through Razorpay.{% else %}Sandbox demo mode — no real money is charged.{% endif %}</p>
+  </div>
+  <form id="wallet-topup-form" class="topup-form">
+    <label>Amount<input id="wallet-amount" name="amount" type="number" min="1" max="50000" step="1" placeholder="Enter amount" required></label>
+    <button class="button" type="submit">{% if payment_configured %}Pay securely{% else %}Add in demo mode{% endif %}</button>
+  </form>
+  {% if not payment_configured %}<small class="demo-note">Demo only. Configure Razorpay keys to enable real payments.</small>{% endif %}
+</section>
+
+<h2>My bookings</h2>
+{% for booking in bookings %}<article class="booking-row"><div><strong>{{ booking.pnr }}</strong><h3>{{ booking.train.train_name }}</h3><p>{{ booking.train.source }} → {{ booking.train.destination }} · Seat {{ booking.seat_no }}</p><span>{{ booking.status }}</span></div><div><a class="button" href="{% url 'ticket' booking.pnr %}">View ticket</a>{% if booking.status != "Cancelled" %}<form method="post" action="{% url 'cancel_booking' booking.pnr %}">{% csrf_token %}<button type="submit" onclick="return confirm('Cancel this booking and get a refund?')">Cancel & refund</button></form>{% endif %}</div></article>{% empty %}<div class="empty-state"><h2>No bookings yet</h2><a class="button" href="{% url 'train_list' %}">Search trains</a></div>{% endfor %}
+
+{% if transactions %}
+<h2>Recent wallet activity</h2>
+{% for payment in transactions %}
+<article class="wallet-transaction"><div><strong>₹{{ payment.amount }}</strong><span>{{ payment.provider }}</span></div><b>{{ payment.status }}</b><small>{{ payment.created_at|date:"d M Y, h:i A" }}</small></article>
+{% endfor %}
+{% endif %}
+
+<script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("wallet-topup-form");
+  const csrf = document.querySelector("[name=csrfmiddlewaretoken]").value;
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const amount = document.getElementById("wallet-amount").value;
+    if (!amount || Number(amount) < 1 || Number(amount) > 50000) {
+      alert("Enter an amount between ₹1 and ₹50,000.");
+      return;
+    }
+    const body = new URLSearchParams({amount, csrfmiddlewaretoken: csrf});
+    {% if payment_configured %}
+    const orderResponse = await fetch("{% url 'wallet_payment_order' %}", {
+      method: "POST", headers: {"X-CSRFToken": csrf}, body
+    });
+    const order = await orderResponse.json();
+    if (!orderResponse.ok) { alert(order.error); return; }
+    const checkout = new Razorpay({
+      key: "{{ razorpay_key_id }}",
+      amount: order.amount,
+      currency: "INR",
+      name: "RailEase",
+      description: "Wallet recharge",
+      order_id: order.order_id,
+      handler: async (response) => {
+        const verifyResponse = await fetch("{% url 'verify_wallet_payment' %}", {
+          method: "POST",
+          headers: {"Content-Type": "application/json", "X-CSRFToken": csrf},
+          body: JSON.stringify(response)
+        });
+        const result = await verifyResponse.json();
+        if (verifyResponse.ok) {
+          document.getElementById("wallet-balance").textContent = "₹" + result.balance;
+          alert("Wallet recharged successfully.");
+          location.reload();
+        } else alert(result.error);
+      }
+    });
+    checkout.open();
+    {% else %}
+    const response = await fetch("{% url 'demo_wallet_payment' %}", {
+      method: "POST", headers: {"X-CSRFToken": csrf}, body
+    });
+    const result = await response.json();
+    if (response.ok) {
+      document.getElementById("wallet-balance").textContent = "₹" + result.balance;
+      alert("Demo payment successful. Wallet balance updated.");
+      location.reload();
+    } else alert(result.error);
+    {% endif %}
+  });
+});
+</script>
+{% endblock %}
