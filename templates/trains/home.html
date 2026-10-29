@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}RailEase — Book Train Tickets{% endblock %}
+{% block content %}
+<section class="hero">
+  <div><span class="eyebrow">INDIA'S SMARTER JOURNEY</span><h1>Your next journey<br><em>starts here.</em></h1><p>Search trains, reserve seats and track your journey—all in one place.</p></div>
+  <div class="hero-card"><h2>Book a train</h2><form action="{% url 'train_list' %}" method="get"><label>From<input name="source" placeholder="e.g. Delhi" required></label><label>To<input name="destination" placeholder="e.g. Mumbai" required></label><button class="primary" type="submit">Search trains</button></form></div>
+</section>
+<section class="features"><article><b>01</b><h3>Find the right train</h3><p>Compare routes, timings and fares instantly.</p></article><article><b>02</b><h3>Book with confidence</h3><p>See available seats before confirming your ticket.</p></article><article><b>03</b><h3>Stay on track</h3><p>Follow stations, delays and estimated arrival in real time.</p></article></section>
+{% endblock %}

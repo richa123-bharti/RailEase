@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Ticket {{ booking.pnr }}{% endblock %}
+{% block content %}<article class="ticket"><h1>RailEase Ticket</h1><p><strong>PNR:</strong> {{ booking.pnr }}</p><p><strong>Passenger:</strong> {{ booking.passenger_name }}</p><p><strong>Train:</strong> {{ booking.train.train_name }} ({{ booking.train.train_no }})</p><p><strong>Route:</strong> {{ booking.train.source }} to {{ booking.train.destination }}</p><p><strong>Seat:</strong> {{ booking.seat_no }}</p><p><strong>Status:</strong> {{ booking.status }}</p><button onclick="window.print()">Print ticket</button></article>{% endblock %}

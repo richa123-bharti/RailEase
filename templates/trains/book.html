@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Book {{ train.train_name }} — RailEase{% endblock %}
+{% block content %}<section class="form-card"><span class="eyebrow">PASSENGER DETAILS</span><h1>{{ train.train_name }}</h1><p>{{ train.source }} → {{ train.destination }} · {{ train.available_seats }} seats available</p><p><strong>Fare: ₹{{ train.fare }}</strong></p><form method="post">{% csrf_token %}<label>Passenger full name<input name="passenger_name" maxlength="100" required></label><label>Seat number<input name="seat_no" type="number" min="1" max="{{ train.total_seats }}" required></label><button class="primary" type="submit">Confirm & pay</button></form></section>{% endblock %}

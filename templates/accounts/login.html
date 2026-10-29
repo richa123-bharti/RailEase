@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Login — RailEase{% endblock %}
+{% block content %}<section class="form-card"><span class="eyebrow">WELCOME BACK</span><h1>Login to RailEase</h1><form method="post">{% csrf_token %}{{ form.as_p }}<button class="primary" type="submit">Login</button></form><p>New here? <a href="{% url 'register' %}"><strong>Create an account</strong></a></p></section>{% endblock %}
