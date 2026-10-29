@@ -1,1 +1,1 @@
-web: gunicorn railease.wsgi:application
+web: python manage.py migrate && gunicorn app:app
