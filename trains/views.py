@@ -38,10 +38,19 @@ def train_list(request):
     trains = Train.objects.all()
     source = request.GET.get("source", "")
     destination = request.GET.get("destination", "")
+    aliases = {
+        'madhya pradesh': 'bhopal',
+        'mp': 'bhopal',
+        'bihar': 'patna',
+        'new delhi': 'delhi',
+    }
     if source:
-        trains = trains.filter(source__icontains=source)
+        source_key = aliases.get(source.strip().lower(), source)
+        trains = trains.filter(source__icontains=source_key)
     if destination:
-        trains = trains.filter(destination__icontains=destination)
+        destination_key = aliases.get(destination.strip().lower(), destination)
+        trains = trains.filter(destination__icontains=destination_key)
+    trains = trains.filter(available_seats__gt=0).order_by("departure_time")
     return render(request, "trains/train_list.html", {"trains": trains, "source": source, "destination": destination})
 
 

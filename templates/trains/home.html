@@ -3,7 +3,7 @@
 {% block content %}
 <section class="hero">
   <div><span class="eyebrow">INDIA'S SMARTER JOURNEY</span><h1>Your next journey<br><em>starts here.</em></h1><p>Search trains, reserve seats and track your journey—all in one place.</p></div>
-  <div class="hero-card"><h2>Book a train</h2><form action="{% url 'train_list' %}" method="get"><label>From<input name="source" placeholder="e.g. Delhi" required></label><label>To<input name="destination" placeholder="e.g. Mumbai" required></label><button class="primary" type="submit">Search trains</button></form></div>
+  <div class="hero-card"><h2>Book a train</h2><form action="{% url 'train_list' %}" method="get"><label>From<div class="input-icon"><span>↗</span><input name="source" list="stations" placeholder="e.g. Delhi" required></div></label><label>To<div class="input-icon"><span>⌖</span><input name="destination" list="stations" placeholder="e.g. Mumbai" required></div></label><datalist id="stations"><option value="Delhi"><option value="Mumbai"><option value="Bhopal"><option value="Madhya Pradesh"><option value="Patna"><option value="Bihar"><option value="Lucknow"><option value="Kanpur"><option value="Jaipur"><option value="Kolkata"></datalist><button class="primary" type="submit"><span>Search trains</span> <b>→</b></button></form></div>
 </section>
 <section class="features"><article><b>01</b><h3>Find the right train</h3><p>Compare routes, timings and fares instantly.</p></article><article><b>02</b><h3>Book with confidence</h3><p>See available seats before confirming your ticket.</p></article><article><b>03</b><h3>Stay on track</h3><p>Follow stations, delays and estimated arrival in real time.</p></article></section>
 {% endblock %}
